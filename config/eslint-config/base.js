@@ -1,5 +1,5 @@
 /**@type {import('eslint').Linter.Config}*/
-module.exports = {
+export const config = {
   extends: ['@rocketseat/eslint-config/react'],
   plugins: ['simple-import-sort'],
   rules: {
