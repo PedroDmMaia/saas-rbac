@@ -11,6 +11,7 @@ import {
 } from 'fastify-type-provider-zod'
 
 import { AuthenticateWithPasswordAuth } from '@/http/routes/auth/authenticate-with-password.auth'
+import { getProfile } from '@/http/routes/auth/get-profile.auth'
 
 import { createAccount } from './routes/auth/create-account.auth'
 
@@ -43,6 +44,7 @@ app.setValidatorCompiler(validatorCompiler)
 
 app.register(createAccount)
 app.register(AuthenticateWithPasswordAuth)
+app.register(getProfile)
 
 app.listen({ port: 3333 }).then(() => {
   console.log('HTTP server running 🚀')
