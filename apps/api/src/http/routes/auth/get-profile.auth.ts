@@ -1,4 +1,3 @@
-import { compare } from 'bcryptjs'
 import { FastifyInstance } from 'fastify'
 import { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
@@ -17,10 +16,6 @@ export async function getProfile(app: FastifyInstance) {
         schema: {
           tags: ['auth'],
           summary: 'Get authenticate user profile',
-          body: z.object({
-            email: z.string().email(),
-            password: z.string(),
-          }),
           response: {
             200: z.object({
               user: z.object({
@@ -53,6 +48,6 @@ export async function getProfile(app: FastifyInstance) {
         }
 
         return reply.send({ user })
-      },
+      }
     )
 }
