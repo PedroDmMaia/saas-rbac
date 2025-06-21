@@ -2,7 +2,6 @@ import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 
-import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import { generateSlug } from '@/utils/create-slug'
 
@@ -10,7 +9,7 @@ import { BadRequestError } from '../_errors/bad-request.error'
 
 export async function createOrganization(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
-    '/organization',
+    '/organizations',
     {
       schema: {
         tags: ['Organizations'],
