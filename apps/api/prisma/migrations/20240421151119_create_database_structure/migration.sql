@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "TokenType" AS ENUM ('PASSWORD_RECORVER');
+CREATE TYPE "TokenType" AS ENUM ('PASSWORD_RECOVER');
 
 -- CreateEnum
 CREATE TYPE "AccountProvider" AS ENUM ('GITHUB');
@@ -81,7 +81,7 @@ CREATE TABLE "organizations" (
 CREATE TABLE "projects" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "desacription" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "avatar_url" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -91,6 +91,9 @@ CREATE TABLE "projects" (
 
     CONSTRAINT "projects_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "accounts_provider_account_id_key" ON "accounts"("provider_account_id");

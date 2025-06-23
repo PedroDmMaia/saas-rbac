@@ -1,18 +1,18 @@
 import { compare } from 'bcryptjs'
-import { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { z } from 'zod'
+import type { FastifyInstance } from 'fastify'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import z from 'zod'
 
-import { BadRequestError } from '@/http/routes/_errors/bad-request.error'
+import { BadRequestError } from '@/http/routes/_errors/bad-request-error'
 import { prisma } from '@/lib/prisma'
 
-export async function AuthenticateWithPasswordAuth(app: FastifyInstance) {
+export async function authenticateWithPassword(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
     '/sessions/password',
     {
       schema: {
-        tags: ['auth'],
-        summary: 'Authnenticate with e-mail & password',
+        tags: ['Auth'],
+        summary: 'Authenticate with e-mail & password',
         body: z.object({
           email: z.string().email(),
           password: z.string(),
@@ -28,11 +28,13 @@ export async function AuthenticateWithPasswordAuth(app: FastifyInstance) {
       const { email, password } = request.body
 
       const userFromEmail = await prisma.user.findUnique({
-        where: { email },
+        where: {
+          email,
+        },
       })
 
       if (!userFromEmail) {
-        throw new BadRequestError('Invalid credentials')
+        throw new BadRequestError('Invalid credentials.')
       }
 
       if (userFromEmail.passwordHash === null) {
@@ -47,7 +49,7 @@ export async function AuthenticateWithPasswordAuth(app: FastifyInstance) {
       )
 
       if (!isPasswordValid) {
-        throw new BadRequestError('Invalid credentials')
+        throw new BadRequestError('Invalid credentials.')
       }
 
       const token = await reply.jwtSign(

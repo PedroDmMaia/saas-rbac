@@ -3,7 +3,7 @@ import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 
-import { BadRequestError } from '@/http/routes/_errors/bad-request.error'
+import { BadRequestError } from '@/http/routes/_errors/bad-request-error'
 import { prisma } from '@/lib/prisma'
 
 export async function createAccount(app: FastifyInstance) {
@@ -11,12 +11,12 @@ export async function createAccount(app: FastifyInstance) {
     '/users',
     {
       schema: {
-        tags: ['auth'],
+        tags: ['Auth'],
         summary: 'Create a new account',
         body: z.object({
           name: z.string(),
           email: z.string().email(),
-          password: z.string(),
+          password: z.string().min(6),
         }),
       },
     },
@@ -24,16 +24,18 @@ export async function createAccount(app: FastifyInstance) {
       const { name, email, password } = request.body
 
       const userWithSameEmail = await prisma.user.findUnique({
-        where: { email },
+        where: {
+          email,
+        },
       })
 
       if (userWithSameEmail) {
-        throw new BadRequestError('user with same e-mail already exists.')
+        throw new BadRequestError('User with same e-mail already exists.')
       }
 
-      const [_, domain] = email.split('@')
+      const [, domain] = email.split('@')
 
-      const autoJoinOrganzization = await prisma.organization.findFirst({
+      const autoJoinOrganization = await prisma.organization.findFirst({
         where: {
           domain,
           shouldAttachUsersByDomain: true,
@@ -47,10 +49,10 @@ export async function createAccount(app: FastifyInstance) {
           name,
           email,
           passwordHash,
-          member_on: autoJoinOrganzization
+          member_on: autoJoinOrganization
             ? {
                 create: {
-                  organizationId: autoJoinOrganzization.id,
+                  organizationId: autoJoinOrganization.id,
                 },
               }
             : undefined,

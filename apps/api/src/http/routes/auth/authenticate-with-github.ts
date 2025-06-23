@@ -1,9 +1,9 @@
 import { env } from '@saas/env'
-import { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { FastifyInstance } from 'fastify'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 
-import { BadRequestError } from '@/http/routes/_errors/bad-request.error'
+import { BadRequestError } from '@/http/routes/_errors/bad-request-error'
 import { prisma } from '@/lib/prisma'
 
 export async function authenticateWithGithub(app: FastifyInstance) {
@@ -11,8 +11,8 @@ export async function authenticateWithGithub(app: FastifyInstance) {
     '/sessions/github',
     {
       schema: {
-        tags: ['auth'],
-        summary: 'Authnenticate with Github',
+        tags: ['Auth'],
+        summary: 'Authenticate with GitHub',
         body: z.object({
           code: z.string(),
         }),
@@ -26,29 +26,29 @@ export async function authenticateWithGithub(app: FastifyInstance) {
     async (request, reply) => {
       const { code } = request.body
 
-      const githubOAuthUrl = new URL(
+      const githubOAuthURL = new URL(
         'https://github.com/login/oauth/access_token',
       )
 
-      githubOAuthUrl.searchParams.set('client_id', env.GITHUB_OAUTH_CLIENT_ID)
-      githubOAuthUrl.searchParams.set(
+      githubOAuthURL.searchParams.set('client_id', env.GITHUB_OAUTH_CLIENT_ID)
+      githubOAuthURL.searchParams.set(
         'client_secret',
         env.GITHUB_OAUTH_CLIENT_SECRET,
       )
-      githubOAuthUrl.searchParams.set(
-        'redirct_uri',
+      githubOAuthURL.searchParams.set(
+        'redirect_uri',
         env.GITHUB_OAUTH_CLIENT_REDIRECT_URI,
       )
-      githubOAuthUrl.searchParams.set('code', code)
+      githubOAuthURL.searchParams.set('code', code)
 
-      const githubAccessTokenResponse = await fetch(githubOAuthUrl, {
+      const githubAccessTokenResponse = await fetch(githubOAuthURL, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
         },
       })
 
-      const githubAcessTokenData = await githubAccessTokenResponse.json()
+      const githubAccessTokenData = await githubAccessTokenResponse.json()
 
       const { access_token: githubAccessToken } = z
         .object({
@@ -56,7 +56,7 @@ export async function authenticateWithGithub(app: FastifyInstance) {
           token_type: z.literal('bearer'),
           scope: z.string(),
         })
-        .parse(githubAcessTokenData)
+        .parse(githubAccessTokenData)
 
       const githubUserResponse = await fetch('https://api.github.com/user', {
         headers: {
@@ -68,9 +68,9 @@ export async function authenticateWithGithub(app: FastifyInstance) {
 
       const {
         id: githubId,
-        avatar_url: avatarUrl,
         name,
         email,
+        avatar_url: avatarUrl,
       } = z
         .object({
           id: z.number().int().transform(String),
@@ -82,27 +82,25 @@ export async function authenticateWithGithub(app: FastifyInstance) {
 
       if (email === null) {
         throw new BadRequestError(
-          'Your Github account must have an email to authenticate',
+          'Your GitHub account must have an email to authenticate.',
         )
       }
 
       let user = await prisma.user.findUnique({
-        where: {
-          email,
-        },
+        where: { email },
       })
 
       if (!user) {
         user = await prisma.user.create({
           data: {
-            avatarUrl,
             email,
             name,
+            avatarUrl,
           },
         })
       }
 
-      let account = await prisma.accounts.findUnique({
+      let account = await prisma.account.findUnique({
         where: {
           provider_userId: {
             provider: 'GITHUB',
@@ -112,7 +110,7 @@ export async function authenticateWithGithub(app: FastifyInstance) {
       })
 
       if (!account) {
-        account = await prisma.accounts.create({
+        account = await prisma.account.create({
           data: {
             provider: 'GITHUB',
             providerAccountId: githubId,
